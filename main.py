@@ -20,6 +20,13 @@ def import_modules():
 
 def import_prerequisite_connections():
     prerequisite_connections = {}
+    with open("connections.txt") as file:
+        for line in file:
+            (key, val) = line.split()
+            if key not in prerequisite_connections:
+                prerequisite_connections[key] = [val]
+            else:
+                prerequisite_connections[key].append(val)
 
     return prerequisite_connections
 
@@ -90,6 +97,7 @@ class Graph:
 def main():
     # Import courses
     imported_modules = import_modules()
+    prerequisite_connections = import_prerequisite_connections()
 
     graph = Graph(len(imported_modules))
 
@@ -98,18 +106,9 @@ def main():
         graph.add_node(module, index)
 
     # Add Edges to represent prerequisites
-    graph.add_edge(imported_modules["Programming_1"], imported_modules["Programming_2"])
-    graph.add_edge(imported_modules["Programming_2"], imported_modules["OOP"])
-    graph.add_edge(imported_modules["College_Maths_1B"], imported_modules["Discreet_Maths"])
-    graph.add_edge(imported_modules["Academic_Writing_I"], imported_modules["Academic_Writing_II"])
-    graph.add_edge(imported_modules["College_Level_IT"], imported_modules["Database_Design"])
-    graph.add_edge(imported_modules["College_Level_IT"], imported_modules["Web_Programming"])
-    graph.add_edge(imported_modules["College_Level_IT"], imported_modules["CLD"])
-    graph.add_edge(imported_modules["College_Maths_1B"], imported_modules["Intro_Stats"])
-    graph.add_edge(imported_modules["OOP"], imported_modules["Data_Structures"])
-    graph.add_edge(imported_modules["College_Level_IT"], imported_modules["SAD"])
-    graph.add_edge(imported_modules["Discreet_Maths"], imported_modules["Physics"])
-    graph.add_edge(imported_modules["Academic_Writing_I"], imported_modules["Ethics"])
+    for index, prerequisite in enumerate(prerequisite_connections):
+        for value in prerequisite_connections.get(prerequisite):
+            graph.add_edge(imported_modules[prerequisite], imported_modules[value])
 
     # Perform Topological Sort
     module_order = graph.topological_sort()

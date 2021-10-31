@@ -1,0 +1,12 @@
+Programming_1 Programming_2
+Programming_2 OOP
+College_Maths_1B Discreet_Maths
+Academic_Writing_I Academic_Writing_II
+College_Level_IT Database_Design
+College_Level_IT Web_Programming
+College_Level_IT CLD
+College_Maths_1B Intro_Stats
+OOP Data_Structures
+College_Level_IT SAD
+Discreet_Maths Physics
+Academic_Writing_I Ethics

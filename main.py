@@ -99,5 +99,11 @@ def generate_optimal_order():
     return json_optimal_order
 
 
+@app.route("/")
+@cross_origin()
+def app_started():
+    return "Started"
+
+
 if __name__ == '__main__':
     app.run()

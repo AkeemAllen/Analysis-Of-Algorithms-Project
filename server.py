@@ -22,7 +22,7 @@ def display_optimal_order(order):
     for item in order:
         node_order.append(list(graph.keys())[list(graph.values()).index(item)])
 
-    return node_order[::1]
+    return node_order
 
 
 def depth_first_search(v, visited, stack):
@@ -43,7 +43,7 @@ def topological_sort():
         if not visited[i]:
             depth_first_search(i, visited, stack)
 
-    return stack[::1]
+    return stack[::-1]
 
 
 @app.route("/add-node", methods=["POST"])
@@ -78,10 +78,9 @@ def add_edge():
 def generate_graph():
     pydot_graph.write('output.dot')
 
-    net = Network(directed=True, notebook=True)
+    net = Network("500px", "100%", directed=True, notebook=True)
     net.from_DOT("output.dot")
     net.show("dot.html")
-    net.show_buttons(filter_=["nodes"])
 
     with open("dot.html", "r") as file:
         html_file = file.read()

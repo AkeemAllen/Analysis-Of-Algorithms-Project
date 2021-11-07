@@ -1,9 +1,15 @@
 # Python program using topological sort to determine the order to complete all courses for a module in a proper order
+import json
 from collections import defaultdict
 from pyvis.network import Network
 import pydot
+from flask import Flask
+from flask_cors import cross_origin
 
-# Class to represent a graph
+# TODO:
+#  add arrows to graph visualization.
+#  Improve User Interface for running code and inputting modules (Maybe through a desktop app?)
+#  (Might be good idea to make it so that you can partially enter info and still be able to generate a graph)
 
 pydot_graph = pydot.Dot('Module Selection', graph_type="graph")
 
@@ -49,6 +55,11 @@ def generate_graph():
     net.show_buttons(filter_=["nodes"])
 
 
+app = Flask(__name__)
+
+
+# Tag as retrieved from geeks_for_geeks
+# Class to represent a graph
 class Graph:
     def __init__(self, vertices):
         self.graph = defaultdict(list)  # dictionary containing adjacency List
@@ -94,6 +105,8 @@ class Graph:
         return stack[::-1]  # return list in reverse order
 
 
+@app.route("/test")
+@cross_origin()
 def main():
     # Import courses
     imported_modules = import_modules()
@@ -113,12 +126,15 @@ def main():
     # Perform Topological Sort
     module_order = graph.topological_sort()
 
-    # Display Optimal Order in which to do all courses
-    print(display_optimal_order(module_order, imported_modules))
-
     # Generate Html File to represent graph
     generate_graph()
 
+    # Display Optimal Order in which to do all courses
+    optimal_order = display_optimal_order(module_order, imported_modules)
+    print(optimal_order)
+    json_optimal_order = json.dumps(optimal_order, indent=4)
+    return json_optimal_order
+
 
 if __name__ == "__main__":
-    main()
+    app.run(host='127.0.0.1', port=5001)

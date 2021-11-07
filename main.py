@@ -1,140 +1,103 @@
-# Python program using topological sort to determine the order to complete all courses for a module in a proper order
 import json
-from collections import defaultdict
-from pyvis.network import Network
+
 import pydot
-from flask import Flask
+from pyvis.network import Network
+from flask import Flask, request
+from collections import defaultdict
 from flask_cors import cross_origin
+from bs4 import BeautifulSoup
 
-# TODO:
-#  add arrows to graph visualization.
-#  Improve User Interface for running code and inputting modules (Maybe through a desktop app?)
-#  (Might be good idea to make it so that you can partially enter info and still be able to generate a graph)
+app = Flask(__name__)
 
+modules = {}
+graph = defaultdict(list)
 pydot_graph = pydot.Dot('Module Selection', graph_type="graph")
+current_node_position = 0
+number_of_vertices = 0
 
 
-def import_modules():
-    modules = {}
-    with open("modules.txt") as file:
-        for line in file:
-            (key, val) = line.split()
-            modules[key] = int(val)
-
-    return modules
-
-
-def import_prerequisite_connections():
-    prerequisite_connections = {}
-    with open("connections.txt") as file:
-        for line in file:
-            (key, val) = line.split()
-            if key not in prerequisite_connections:
-                prerequisite_connections[key] = [val]
-            else:
-                prerequisite_connections[key].append(val)
-
-    return prerequisite_connections
-
-
-def display_optimal_order(order, nodes):
+def display_optimal_order(order):
     node_order = []
 
     for item in order:
-        node_order.append(list(nodes.keys())[list(nodes.values()).index(item)])
+        node_order.append(list(graph.keys())[list(graph.values()).index(item)])
 
     return node_order
 
 
+def depth_first_search(v, visited, stack):
+    visited[v] = True
+
+    for i in graph[v]:
+        if not visited[i]:
+            depth_first_search(i, visited, stack)
+
+    stack.append(v)
+
+
+def topological_sort():
+    visited = [False] * number_of_vertices
+    stack = []
+
+    for i in range(number_of_vertices):
+        if not visited[i]:
+            depth_first_search(i, visited, stack)
+
+    return stack[::-1]
+
+
+@app.route("/add-node", methods=["POST"])
+@cross_origin()
+def add_node():
+    global current_node_position
+    global number_of_vertices
+
+    input_json = request.get_json(force=True)
+    graph[input_json["node"]] = current_node_position
+    pydot_graph.add_node(pydot.Node(current_node_position, label=input_json["node"]))
+    current_node_position = current_node_position + 1
+    number_of_vertices = number_of_vertices + 1
+    return "Module Added"
+
+
+@app.route("/add-edge", methods=["POST"])
+@cross_origin()
+def add_edge():
+    input_json = request.get_json(force=True)
+    from_ = input_json["connection"]["from"]
+    to = input_json["connection"]["to"]
+
+    graph[graph[from_]].append(graph[to])
+    pydot_graph.add_edge(pydot.Edge(graph[from_], graph[to]))
+
+    return "Connection Added"
+
+
+@app.route("/generate-graph")
+@cross_origin()
 def generate_graph():
     pydot_graph.write('output.dot')
 
-    net = Network(directed=True, notebook=True)
+    net = Network("500px", "100%", directed=True, notebook=True)
     net.from_DOT("output.dot")
     net.show("dot.html")
-    net.show_buttons(filter_=["nodes"])
+
+    with open("dot.html", "r") as file:
+        html_file = file.read()
+
+    soup = BeautifulSoup(html_file, "html.parser")
+    return soup.prettify()
 
 
-app = Flask(__name__)
-
-
-# Tag as retrieved from geeks_for_geeks
-# Class to represent a graph
-class Graph:
-    def __init__(self, vertices):
-        self.graph = defaultdict(list)  # dictionary containing adjacency List
-        self.V = vertices  # No. of vertices
-
-    def add_node(self, node, index):
-        self.graph[node] = index
-        pydot_graph.add_node(pydot.Node(index, label=node))
-
-    # function to add an edge to graph
-    def add_edge(self, u, v):
-        self.graph[u].append(v)
-        pydot_graph.add_edge(pydot.Edge(u, v))
-
-    # A recursive function used by topologicalSort
-    def topological_sort_util(self, v, visited, stack):
-
-        # Mark the current node as visited.
-        visited[v] = True
-
-        # Recur for all the vertices adjacent to this vertex
-        for i in self.graph[v]:
-            if not visited[i]:
-                self.topological_sort_util(i, visited, stack)
-
-        # Push current vertex to stack which stores result
-        stack.append(v)
-
-    # The function to do Topological Sort. It uses recursive
-    # topological_sort_util()
-    def topological_sort(self):
-        # Mark all the vertices as not visited
-        visited = [False] * self.V
-        stack = []
-
-        # Call the recursive helper function to store Topological
-        # Sort starting from all vertices one by one
-        for i in range(self.V):
-            if not visited[i]:
-                self.topological_sort_util(i, visited, stack)
-
-        # Print contents of the stack
-        return stack[::-1]  # return list in reverse order
-
-
-@app.route("/test")
+@app.route("/generate-optimal-order")
 @cross_origin()
-def main():
-    # Import courses
-    imported_modules = import_modules()
-    prerequisite_connections = import_prerequisite_connections()
+def generate_optimal_order():
+    module_order = topological_sort()
 
-    graph = Graph(len(imported_modules))
-
-    # Add Modules to Graph as nodes
-    for index, module in enumerate(imported_modules):
-        graph.add_node(module, index)
-
-    # Add Edges to represent prerequisites
-    for index, prerequisite in enumerate(prerequisite_connections):
-        for value in prerequisite_connections.get(prerequisite):
-            graph.add_edge(imported_modules[prerequisite], imported_modules[value])
-
-    # Perform Topological Sort
-    module_order = graph.topological_sort()
-
-    # Generate Html File to represent graph
-    generate_graph()
-
-    # Display Optimal Order in which to do all courses
-    optimal_order = display_optimal_order(module_order, imported_modules)
-    print(optimal_order)
+    optimal_order = display_optimal_order(module_order)
     json_optimal_order = json.dumps(optimal_order, indent=4)
     return json_optimal_order
 
 
-if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5001)
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=5001, debug=True)

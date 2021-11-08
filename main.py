@@ -80,7 +80,7 @@ def generate_graph():
 
     net = Network("500px", "100%", directed=True, notebook=True)
     net.from_DOT("output.dot")
-    net.show("dot.html")
+    net.save_graph("dot.html")
 
     with open("dot.html", "r") as file:
         html_file = file.read()

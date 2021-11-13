@@ -19,8 +19,11 @@ number_of_vertices = 0
 def display_optimal_order(order):
     node_order = []
 
-    for item in order:
-        node_order.append(list(graph.keys())[list(graph.values()).index(item)])
+    try:
+        for item in order:
+            node_order.append(list(graph.keys())[list(graph.values()).index(item)])
+    except ValueError:
+        return []
 
     return node_order
 
@@ -87,6 +90,22 @@ def generate_graph():
 
     soup = BeautifulSoup(html_file, "html.parser")
     return soup.prettify()
+
+
+@app.route("/clear-graph")
+@cross_origin()
+def clear_graph():
+    import os
+    if os.path.exists("dot.html"):
+        os.remove("dot.html")
+    else:
+        print("The file does not exist")
+
+    if os.path.exists("output.dot"):
+        os.remove("output.dot")
+    else:
+        print("The file does not exist")
+    return "Graph Reset"
 
 
 @app.route("/generate-optimal-order")

@@ -102,8 +102,15 @@ def generate_optimal_order():
 @app.route("/")
 @cross_origin()
 def app_started():
+    global modules, graph, pydot_graph, current_node_position, number_of_vertices
+    modules = {}
+    graph = defaultdict(list)
+    pydot_graph = pydot.Dot('Module Selection', graph_type="graph")
+    current_node_position = 0
+    number_of_vertices = 0
+
     return "Started"
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5001, debug=True)

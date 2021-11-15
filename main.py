@@ -49,6 +49,7 @@ def topological_sort():
     return stack[::-1]
 
 
+# Adds Nodes To The Graph as well as pydot
 @app.route("/add-node", methods=["POST"])
 @cross_origin()
 def add_node():
@@ -63,6 +64,7 @@ def add_node():
     return "Module Added"
 
 
+# Adds Edges To The Graph as well as pydot
 @app.route("/add-edge", methods=["POST"])
 @cross_origin()
 def add_edge():
@@ -76,6 +78,7 @@ def add_edge():
     return "Connection Added"
 
 
+# Generates graph using html for visualization
 @app.route("/generate-graph")
 @cross_origin()
 def generate_graph():
@@ -92,10 +95,18 @@ def generate_graph():
     return soup.prettify()
 
 
+# Resets graph by deleting output and dot file
 @app.route("/clear-graph")
 @cross_origin()
 def clear_graph():
     import os
+    global modules, graph, pydot_graph, current_node_position, number_of_vertices
+    modules = {}
+    graph = defaultdict(list)
+    pydot_graph = pydot.Dot('Module Selection', graph_type="graph")
+    current_node_position = 0
+    number_of_vertices = 0
+
     if os.path.exists("dot.html"):
         os.remove("dot.html")
     else:
@@ -108,6 +119,8 @@ def clear_graph():
     return "Graph Reset"
 
 
+# Uses the topological sort to generate
+# the optimal order in which to do modules
 @app.route("/generate-optimal-order")
 @cross_origin()
 def generate_optimal_order():
@@ -118,6 +131,7 @@ def generate_optimal_order():
     return json_optimal_order
 
 
+# Clears application after initialization
 @app.route("/")
 @cross_origin()
 def app_started():
@@ -131,5 +145,6 @@ def app_started():
     return "Started"
 
 
+# Initializes application on port 5001
 if __name__ == '__main__':
     app.run(port=5001, debug=True)

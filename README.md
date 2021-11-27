@@ -9,7 +9,7 @@ that connects to the **_Analysis-Of-Algorithms-Project-Interface_** gui that goe
 
 **Norval Excell** - 1903461
 
-**Malique** -
+**Malique Malcolm** - 1807910
 
 # Instructions For Running This Application
 1. Ensure you have [python3](https://www.python.org/downloads/) installed

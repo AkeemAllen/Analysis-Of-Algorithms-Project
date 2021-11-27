@@ -1,7 +1,7 @@
 # Group Members
 # Akeem Allen - 1706357
 # Norval Excell - 1903461
-# Malique
+# Malique Malcolm - 1807910
 
 import json
 

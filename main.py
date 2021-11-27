@@ -1,3 +1,8 @@
+# Group Members
+# Akeem Allen - 1706357
+# Norval Excell - 1903461
+# Malique
+
 import json
 
 import pydot
@@ -38,6 +43,7 @@ def depth_first_search(v, visited, stack):
     stack.append(v)
 
 
+# Algorithm pulled from https://www.geeksforgeeks.org/topological-sorting/
 def topological_sort():
     visited = [False] * number_of_vertices
     stack = []
